@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+* {
+    padding: 0;
+    margin: 0;
+}
+
+svg {
+    background-color: #c00;
+    background-image: -webkit-linear-gradient(top, #e6f3fb, #a2cde8);
+    background-image: linear-gradient(top, #e6f3fb, #a2cde8);
+}
+circle {
+    r: 2;
+    fill: rgba(255, 255, 0, 0.9);
+}
+rect {
+    fill: rgba(255, 255, 0, 0);
+}
+
+#new_flashcontent{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+</style>
+
+<body>
+    <div class="con1">
+        <div class="box1">
+            <div id="new_flashcontent"></div>
+        </div>
+    </div>
+    <div class="btn">切换全屏</div>
+    <script src="js/jQuery.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/TweenMax.min.js"></script>
+    <script>
+    var margin = {
+            left: 0,
+            top: 0,
+            right: 10,
+            bottom: 10
+        },
+        width = $("#new_flashcontent").parent().width(),
+        height = $("#new_flashcontent").parent().height(),
+
+        bg_width = 2105,
+        bg_height = 1005,
+        ratio_init = width / bg_width;
+
+    var zoom = d3.behavior.zoom()
+        .scaleExtent([ratio_init, 3])
+        .on("zoom", zoomed);
+
+    var drag = d3.behavior.drag()
+        .origin(function(d) {
+            return d;
+        })
+        .on("dragstart", dragstarted)
+        .on("drag", dragged)
+        .on("dragend", dragended);
+
+    var _svg = d3.select("#new_flashcontent").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .call(zoom);
+
+
+    // 总容器
+    var container = _svg.append("g");
+    container
+        .attr("class", "all")
+        .append("image")
+        .attr("xlink:href", "bg.gif")
+        .attr("x", "0")
+        .attr("y", "0")
+        .attr("width", bg_width)
+        .attr("height", bg_height);
+
+    // 将画布调整到起始比率
+    zoom.scale(ratio_init);
+    zoom.event(_svg.transition().duration(200));
+
+    function zoomed() {
+        $('.tip i').text((d3.event.scale).toFixed(2));
+        container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    }
+
+    function dragstarted(d) {
+        d3.event.sourceEvent.stopPropagation();
+        d3.select(this).classed("dragging", true);
+    }
+
+    function dragged(d) {
+        d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+    }
+
+    function dragended(d) {
+        d3.select(this).classed("dragging", false);
+
+    }
+
+    // 变尺寸 
+    var _box = $(".box1");
+    $('.btn').click(function(event) {
+        if (_box.hasClass('fullscreen')) {
+            _box.removeClass('fullscreen');
+            _w = 1200;
+            _h = 600;
+        } else {
+            _box.addClass('fullscreen');
+            _w = $(window).innerWidth();
+            _h = $(window).innerHeight();
+
+        }
+        console.log(_w + "==" + _h);
+        TweenMax.to($('.box1'), 0, {
+            width: _w,
+            height: _h,
+            onComplete: function() {
+                box_resize(_w, _h);
+            }
+        })
+    });
+
+    function box_resize(width, height) {
+
+
+        // 变换画布
+        /*width = $("#new_flashcontent").parent().width(),
+        height = $("#new_flashcontent").parent().height();*/
+        ratio_init = width / 2105;
+
+        // 改变画布尺寸
+        TweenMax.to($('svg'), .3, { width: width, height: height });
+
+        // 改变位移和比例
+        zoom.translate([0, 0]).scale(ratio_init);
+        zoom.event(_svg.transition().duration(200));
+
+    }
+    </script>
+</body>
